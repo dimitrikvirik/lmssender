@@ -6,6 +6,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
@@ -31,8 +32,21 @@ public class GPAListenner {
     ChromeDriver chromeDriver;
     Set<StudyItem> savedStudyItems = new HashSet<>();
 
+    @Value("${GMAIL_EMAIL}")
+    private String gmailEmail;
+
+    @Value("${LMS_USER}")
+    private String lmsUser;
+
+    @Value("${LMS_PASSWORD}")
+    private String lmsPassword;
+
+    @Value("${CHROME_DRIVER}")
+    private String chromeDriverPath;
+
+
     void registreDriver() {
-        System.setProperty("webdriver.chrome.driver", "/home/dito/Downloads/chromedriver");
+        System.setProperty("webdriver.chrome.driver", chromeDriverPath);
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless");
         chromeDriver = new ChromeDriver(options);
@@ -42,11 +56,11 @@ public class GPAListenner {
 
 
     @PostConstruct
-    void loginUser() throws IOException, InterruptedException {
+    void loginUser() throws InterruptedException {
         registreDriver();
         chromeDriver.get("https://lms.tsu.ge");
-        chromeDriver.findElement(By.id("UserName")).sendKeys(""); // lms username
-        chromeDriver.findElement(By.id("Password")).sendKeys(""); // lms password
+        chromeDriver.findElement(By.id("UserName")).sendKeys(lmsUser); // lms username
+        chromeDriver.findElement(By.id("Password")).sendKeys(lmsPassword); // lms password
         chromeDriver.findElement(By.id("login")).click();
         String title = chromeDriver.getTitle();
         Thread.sleep(1000);
@@ -98,8 +112,8 @@ public class GPAListenner {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, "utf-8");
-            helper.setTo("dimitrikvirik@gmail.com");
-            helper.setFrom("dimitrikvirik@gmail.com");
+            helper.setTo(gmailEmail);
+            helper.setFrom(gmailEmail);
             helper.setText(content, true);
             helper.setSubject(subject);
             mailSender.send(message);
